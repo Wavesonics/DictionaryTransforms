@@ -19,8 +19,8 @@ class VariableLengthEncodingTests {
         )
 
         for (value in testValues) {
-            val encoded = encodeVariableLength(value)
-            val decoded = decodeVariableLength(ByteArrayInputStream(encoded))
+            val encoded = encodeVariableLengthLong(value)
+            val decoded = decodeVariableLengthLong(ByteArrayInputStream(encoded))
             assertEquals("Failed for value: $value", value, decoded)
         }
     }
@@ -28,36 +28,36 @@ class VariableLengthEncodingTests {
     @Test
     fun testEncodeVariableLengthSingleByte() {
         val value = 127L // Should fit into a single byte
-        val encoded = encodeVariableLength(value)
+        val encoded = encodeVariableLengthLong(value)
         assertEquals("Encoded length for 127 should be 1 byte", 1, encoded.size)
     }
 
     @Test
     fun testEncodeVariableLengthMultiByte() {
         val value = 300L // Should require two bytes
-        val encoded = encodeVariableLength(value)
+        val encoded = encodeVariableLengthLong(value)
         assertEquals("Encoded length for 300 should be 2 bytes", 2, encoded.size)
     }
 
     @Test
     fun testDecodeVariableLength() {
         val value = Long.MAX_VALUE
-        val encoded = encodeVariableLength(value)
-        val decoded = decodeVariableLength(ByteArrayInputStream(encoded))
+        val encoded = encodeVariableLengthLong(value)
+        val decoded = decodeVariableLengthLong(ByteArrayInputStream(encoded))
         assertEquals("Decoded value should match original", value, decoded)
     }
 
     @Test
     fun testDecodeVariableLength2() {
         val value = 76520L
-        val encoded = encodeVariableLength(value)
-        val decoded = decodeVariableLength(ByteArrayInputStream(encoded))
+        val encoded = encodeVariableLengthLong(value)
+        val decoded = decodeVariableLengthLong(ByteArrayInputStream(encoded))
         assertEquals("Decoded value should match original", value, decoded)
     }
 
     @Test(expected = java.io.EOFException::class)
     fun testDecodeVariableLengthInvalidInput() {
         val invalidInput = byteArrayOf(0x80.toByte()) // Invalid because it's expecting continuation but there is none
-        decodeVariableLength(ByteArrayInputStream(invalidInput))
+        decodeVariableLengthLong(ByteArrayInputStream(invalidInput))
     }
 }

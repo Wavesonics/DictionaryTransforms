@@ -2,7 +2,7 @@ import java.io.EOFException
 import java.io.InputStream
 import kotlin.experimental.or
 
-fun encodeVariableLength(value: Long): ByteArray {
+fun encodeVariableLengthLong(value: Long): ByteArray {
     val buffer = mutableListOf<Byte>()
     var remainingValue = value
     var n = 0
@@ -18,7 +18,7 @@ fun encodeVariableLength(value: Long): ByteArray {
     return buffer.toByteArray()
 }
 
-fun decodeVariableLength(input: InputStream): Long {
+fun decodeVariableLengthLong(input: InputStream): Long {
     var value = 0L
     var shift = 0
     var n = 0
@@ -35,17 +35,3 @@ fun decodeVariableLength(input: InputStream): Long {
     }
     return value
 }
-
-
-//fun decodeVariableLength(input: ByteArray): Long {
-//    var value = 0L
-//    var shift = 0
-//    for (byte in input) {
-//        value = value or ((byte.toLong() and 0x7F) shl shift) // Extract the 7 bits and shift them
-//        if (byte.toInt() and 0x80 == 0) {                    // MSB is 0, end of number
-//            break
-//        }
-//        shift += 7
-//    }
-//    return value
-//}

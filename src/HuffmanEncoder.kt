@@ -1,9 +1,9 @@
-import java.io.InputStream
+import java.io.BufferedInputStream
 import java.util.PriorityQueue
 
 class HuffmanEncoder {
     internal val charToCodeMap: MutableMap<Char, BitSequence> = mutableMapOf()
-    private var root: Node? = null
+    private var root: Node
 
     constructor(charFrequency: Map<Char, Int>) {
         val charFreqMap = charFrequency.toMutableMap()
@@ -75,50 +75,47 @@ class HuffmanEncoder {
     }
 
     fun decode(encoded: ByteArray): String {
-        if (root == null) throw IllegalStateException("Huffman tree not initialized")
         val decoded = decodeFromBits(encoded)
         // Remove the delimiter if it exists at the end
         return if (decoded.endsWith(STREAM_DELIMITER)) decoded.dropLast(1) else decoded
     }
 
-    fun decode(inputStream: InputStream): String {
-        if (root == null) throw IllegalStateException("Huffman tree not initialized")
-
-        val result = StringBuilder()
+    fun decode(inputStream: BufferedInputStream, decodeBuffer: CharArray = CharArray(64)): String {
+        var bufferPosition = 0
         var currentNode = root
-        var currentByte = inputStream.read()
-        var bitPositionInByte = 0
 
-        while (currentByte != -1) {
-            // Process each bit in the current byte
-            while (bitPositionInByte < 8) {
-                val currentBit = (currentByte and (1 shl (7 - bitPositionInByte))) != 0
+        while (true) {
+            val byte = inputStream.read()
+            if (byte == -1) break
 
-                currentNode = if (currentBit) currentNode?.right else currentNode?.left
-                    ?: throw IllegalStateException("Invalid Huffman encoding")
+            val currentByte = byte and 0xFF
+            var bitPosition = 0
 
-                currentNode?.char?.let { char ->
-                    result.append(char)
-                    if (char == STREAM_DELIMITER) {
-                        return result.dropLast(1).toString() // Remove delimiter and return
-                    }
-                    currentNode = root
+            while (bitPosition < 8) {
+                currentNode = if ((currentByte and BIT_MASKS[bitPosition]) != 0) {
+                    currentNode.right
+                } else {
+                    currentNode.left
+                } ?: error("Invalid Huffman encoding")
+
+                currentNode.char?.let { char ->
+                    if (char == STREAM_DELIMITER) return String(decodeBuffer, 0, bufferPosition)
+                    if (bufferPosition >= decodeBuffer.size) error("Buffer was not large enough")
+
+                    decodeBuffer[bufferPosition++] = char
+                    currentNode = root  // Reset to root, which we know is non-null
                 }
 
-                bitPositionInByte++
+                bitPosition++
             }
-
-            // Read next byte and reset bit position
-            currentByte = inputStream.read()
-            bitPositionInByte = 0
         }
 
-        throw IllegalStateException("Input stream ended before finding delimiter")
+        error("Input stream ended before finding delimiter")
     }
 
     private fun decodeFromBits(encodedBytes: ByteArray): String {
         val result = StringBuilder()
-        var currentNode = root
+        var currentNode: Node? = root
         var bitIndex = 0
         val totalBits = encodedBytes.size * 8
 
@@ -155,26 +152,39 @@ class HuffmanEncoder {
     }
 
     private fun reconstructTreeFromCodes(): Node {
-        val root = Node(null, 0)
+        // Start with a mutable root node
+        val root = MutableNode()
+
+        // Build the tree by following each code path
         charToCodeMap.forEach { (char, bits) ->
             var current = root
+
+            // Follow/create the path for each bit
             for (i in 0 until bits.length) {
-                val bit = bits.getBit(i)
-                if (bit) {
+                val isLast = i == bits.length - 1
+                val goRight = bits.getBit(i)
+
+                if (goRight) {
                     if (current.right == null) {
-                        current.right = Node(null, 0)
+                        current.right = MutableNode()
                     }
                     current = current.right!!
                 } else {
                     if (current.left == null) {
-                        current.left = Node(null, 0)
+                        current.left = MutableNode()
                     }
                     current = current.left!!
                 }
+
+                // Set the character at the leaf node
+                if (isLast) {
+                    current.char = char
+                }
             }
-            current.char = char
         }
-        return root
+
+        // Convert the mutable tree to an immutable one
+        return root.toImmutableNode()
     }
 
     fun exportCharToCodeMap(): ByteArray {
@@ -204,14 +214,34 @@ class HuffmanEncoder {
         root = reconstructTreeFromCodes()
     }
 
-    private data class Node(
-        var char: Char?,
-        val frequency: Int,
-        var left: Node? = null,
-        var right: Node? = null
+    // Mutable node class for tree construction
+    private class MutableNode {
+        var char: Char? = null
+        var left: MutableNode? = null
+        var right: MutableNode? = null
+
+        fun toImmutableNode(): Node {
+            return Node(
+                char = char,
+                frequency = 0, // Frequency not needed for reconstruction
+                left = left?.toImmutableNode(),
+                right = right?.toImmutableNode()
+            )
+        }
+    }
+
+    private class Node(
+        val char: Char?, // Immutable
+        val frequency: Int, // Immutable
+        val left: Node? = null, // Immutable
+        val right: Node? = null // Immutable
     )
 
     companion object {
         const val STREAM_DELIMITER: Char = '\n'
+
+        private val BIT_MASKS = intArrayOf(
+            0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+        )
     }
 }

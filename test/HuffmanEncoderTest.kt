@@ -1,8 +1,7 @@
-import junit.framework.TestCase
-
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 
 class HuffmanEncoderTests {
@@ -236,7 +235,7 @@ class HuffmanEncoderTests {
         println("Original input: $inputString")
         println("Encoded bytes: ${encodedBytes.toHexString()}")
 
-        val inputStream = ByteArrayInputStream(encodedBytes)
+        val inputStream = BufferedInputStream(ByteArrayInputStream(encodedBytes))
         val decodedString = encoder.decode(inputStream)
 
         println("Decoded string: $decodedString")

@@ -4,7 +4,6 @@ import korlibs.io.compression.uncompress
 import korlibs.io.lang.UTF8
 import korlibs.io.lang.toString
 import java.io.*
-import java.nio.charset.Charset
 import kotlin.system.measureTimeMillis
 
 fun loadTxtDict(): Map<String, Long> {
@@ -96,18 +95,19 @@ fun writeFdicRAW(fdicFile: File, encoder: HuffmanEncoder, frequencyDict: Map<Str
 }
 
 private fun BufferedOutputStream.writeVariableLength(frequency: Long) {
-    val encodedFrequency = encodeVariableLength(frequency)
-    for (i in 0..<encodedFrequency.size) {
-        write(encodedFrequency[i].toInt())
+    val encodedFrequency = encodeVariableLengthLong(frequency)
+    encodedFrequency.forEach { element ->
+        write(element.toInt())
     }
 }
 
 fun readFdicRAW(fdicFile: File): Map<String, Long> {
     //println("------------------------- READ FDIC")
     val frequencyDict = mutableMapOf<String, Long>()
+    val buffer = CharArray(64)
     BufferedInputStream(FileInputStream(fdicFile)).use { inputStream ->
         // Read the size of the huffmanTable (4 bytes)
-        val huffmanTableSize = decodeVariableLength(inputStream).toInt()
+        val huffmanTableSize = decodeVariableLengthLong(inputStream).toInt()
 
         //println("Table size read: $huffmanTableSize B")
         // Read the huffmanTable
@@ -120,16 +120,14 @@ fun readFdicRAW(fdicFile: File): Map<String, Long> {
         // Read the frequency dictionary
         while (inputStream.available() > 0) {
             // Read the frequency
-            val frequency = decodeVariableLength(inputStream)
-            val term = decoder.decode(inputStream)
+            val frequency = decodeVariableLengthLong(inputStream)
+            val term = decoder.decode(inputStream, buffer)
             frequencyDict[term] = frequency
         }
 
         return frequencyDict
     }
 }
-
-const val delimiter: Char = '\n'
 
 fun main() {
     ////////////////////////////////////////////////////////////////
@@ -221,4 +219,12 @@ fun percent(percent: Double): String {
 
 fun ByteArray.toHexString(): String {
     return joinToString(separator = "") { byte -> "%02x".format(byte) }
+}
+
+inline fun <T> measureAndPrintTime(description: String = "", block: () -> T): T {
+    val start = System.nanoTime()
+    val result = block()
+    val end = System.nanoTime()
+    println("$description: ${(end - start) / 1_000_000}ms")
+    return result
 }
