@@ -1,3 +1,5 @@
+package utils
+
 fun <T : Comparable<T>> Array<T>.exchangeSort() {
     for (i in indices) {
         for (j in i + 1 until size) {

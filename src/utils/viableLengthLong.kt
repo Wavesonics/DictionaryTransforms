@@ -1,3 +1,5 @@
+package utils
+
 import java.io.EOFException
 import java.io.InputStream
 import kotlin.experimental.or

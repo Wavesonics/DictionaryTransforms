@@ -1,5 +1,7 @@
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import utils.decodeVariableLengthLong
+import utils.encodeVariableLengthLong
 import java.io.ByteArrayInputStream
 
 class VariableLengthEncodingTests {

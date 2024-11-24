@@ -1,3 +1,4 @@
+package strategies.huffman
 
 class HuffmanEncoderBuilder {
     private val charFrequency: MutableMap<Char, Int> = mutableMapOf()

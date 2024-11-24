@@ -1,3 +1,5 @@
+package strategies.huffman
+
 import java.io.BufferedInputStream
 import java.util.PriorityQueue
 
@@ -188,7 +190,7 @@ class HuffmanEncoder {
     }
 
     fun exportCharToCodeMap(): ByteArray {
-        // Convert BitSequence to string representation for serialization
+        // Convert strategies.huffman.BitSequence to string representation for serialization
         val serializedMap = charToCodeMap.entries.joinToString(separator = ";") { (char, bits) ->
             val bitsString = buildString {
                 for (i in 0 until bits.length) {

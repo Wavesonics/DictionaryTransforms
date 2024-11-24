@@ -1,3 +1,5 @@
+package strategies.huffman
+
 // Represents a sequence of bits more efficiently than a String
 class BitSequence {
     private val data: MutableList<Byte> = mutableListOf()
