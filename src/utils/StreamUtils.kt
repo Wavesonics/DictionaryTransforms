@@ -3,12 +3,14 @@ package utils
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 
-fun BufferedOutputStream.writeVariableLength(frequency: Long) {
-    val encodedFrequency = encodeVariableLengthLong(frequency)
-    encodedFrequency.forEach { element ->
-        write(element.toInt())
-    }
-}
+//fun BufferedOutputStream.writeVariableLength(frequency: Long, buffer: ByteArray = ByteArray(10)) {
+//    val encodedFrequency = encodeVariableLengthLong(frequency, buffer)
+//    encodedFrequency.forEach { element ->
+//        write(element.toInt())
+//    }
+//}
+
+fun BufferedOutputStream.writeVariableLength(frequency: Long) = encodeVariableLengthLong(frequency, this)
 
 fun BufferedOutputStream.writeString(str: String) {
     str.forEach { char ->

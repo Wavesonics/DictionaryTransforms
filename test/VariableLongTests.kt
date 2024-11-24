@@ -1,8 +1,10 @@
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import utils.decodeVariableLengthLong
 import utils.encodeVariableLengthLong
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 class VariableLengthEncodingTests {
 
@@ -24,6 +26,36 @@ class VariableLengthEncodingTests {
             val encoded = encodeVariableLengthLong(value)
             val decoded = decodeVariableLengthLong(ByteArrayInputStream(encoded))
             assertEquals("Failed for value: $value", value, decoded)
+        }
+    }
+
+    @Test
+    fun testEncodeVariableLengthToOutputStream() {
+        val testValues = listOf<Long>(
+            0L,
+            1L,
+            127L,
+            128L,
+            300L,
+            16384L,
+            2097151L,
+            123456789L,
+            Long.MAX_VALUE
+        )
+
+        for (value in testValues) {
+            val outputStream = ByteArrayOutputStream()
+            encodeVariableLengthLong(value, outputStream)
+
+            // Compare with existing byte array version
+            val expectedBytes = encodeVariableLengthLong(value)
+            val actualBytes = outputStream.toByteArray()
+
+            assertArrayEquals(
+                "Encoded bytes should match for value: $value",
+                expectedBytes,
+                actualBytes
+            )
         }
     }
 
