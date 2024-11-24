@@ -1,0 +1,5 @@
+product: jvm/app
+
+dependencies:
+  - $kotlin-test
+  - com.soywiz.korge:korge-core:5.1.0

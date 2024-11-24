@@ -1,0 +1,6 @@
+build/
+.gradle/
+.idea/
+
+en-80k.gz
+en-80k.fdic
