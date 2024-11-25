@@ -3,3 +3,5 @@ product: jvm/app
 dependencies:
   - $kotlin-test
   - com.soywiz.korge:korge-core:5.1.0
+  - org.jetbrains.kotlinx:kotlinx-io-core:0.6.0
+  - com.squareup.okio:okio:3.9.1
