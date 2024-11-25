@@ -43,11 +43,11 @@ fun main() {
 
     ////////////////////////////////////////////////////////////////
     // FDIC2
-    writeFdic2(frequencyDict)
+    writeFdic2Kmp(frequencyDict)
 
     val fdict2Loaded: Map<String, Long>
     val fdic2Ms = measureTimeMillis {
-        fdict2Loaded = readFdic2()
+        fdict2Loaded = readFdic2Kmp()
     }
 
     ////////////////////////////////////////////////////////////////
